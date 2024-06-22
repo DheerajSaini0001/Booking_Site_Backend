@@ -1,31 +1,59 @@
-import express from 'express';
-import cors from 'cors';
-import bodyParser from 'body-parser';
+import express from "express"
+import cors from "cors"
+import bodyParser from "body-parser";
+import bcrypt from "bcrypt"
+import multer from "multer";
+import "./conn.js"
+
 const app = express();
-// app.get('/', async(req, res) => {
-//     try{
-// res.json({data:"Dheeraj"})
-//     }
-//     catch(err){
-// console.log(Error);
-//     }
-// })
 
-app.use(bodyParser.urlencoded({extends: false}))
+app.use(bodyParser.urlencoded({ extended: false }))
 app.use(bodyParser.json())
-app.use(cors())
-app.get('/', (req, res)=> {
+app.use(cors());
 
-}
-)
-app.post('/signup', async(req, res) => {
-    try{
-            console.log(req.body);
-            res.json({data: "Success"});
+const storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        cb(null, './upload')
+    },
+    filename: function (req, file, cb) {
+        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9)
+        cb(null, file.fieldname + '-' + uniqueSuffix)
     }
-    catch(err){
-            console.log(Error);
-                }
 })
-console.log();
+
+const upload = multer({ storage: storage })
+
+app.get("/", async (req, res) => {
+    try {
+        res.json({ data: "hello" })
+    }
+    catch (err) {
+        console.log(err)
+    }
+})
+
+app.post("/Booking", async (req, res) => {
+    try {
+        const { username, email, password, phone } = req.body;
+        const passwordB = await bcrypt.hash(password, 10);
+        console.log("password", password);
+        console.log("passwordB", passwordB);
+        return res.status(200).json({ data: "hello post" })
+    } catch (err) {
+        console.log(err)
+        res.status(500).json({ data: err.message })
+    }
+})
+
+app.post("/bookingform", upload.fields([{ name: 'hotelimage', maxCount: 1 }]), async (req, res) => {
+    try {
+        console.log(req.body);
+        console.log(req.files);
+        res.status(200).json({ data: "hello form" })
+    }
+    catch (err) {
+        console.log(err)
+    }
+})
+
 app.listen(8000);
